@@ -1,0 +1,96 @@
+# Copyright (C) 2024 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+
+# Basic training config
+batch_size: 2  # batch size is doubled in dataloader in ERAS training (becomes 4 in forward path).
+val_batch_size: 4 # cv batch size
+seed: 1128  # seed for initializing training
+shuffle: true  # shuffle training dataset during training
+num_workers: 4  # number of workers in dataloaders, 0 for single thread
+
+# trainer args
+trainer_conf:
+  max_epochs: 80
+  limit_train_batches: 0.5
+  limit_val_batches: 1.0
+  limit_test_batches: 1.0
+  gradient_clip_val: 1.0
+
+# early stopping configurations
+early_stopping: null
+
+# checkpoint saving
+model_checkpoint:
+  monitor: val/loss
+  save_top_k: 1
+  mode: min
+  save_weights_only: false
+  save_last: true
+
+# train/dev dataset
+dataset_name: whamr
+dataset_conf:
+  task: sep_reverb_all_srcs
+  use_min: true
+
+# torch dataset
+dataloading_conf:
+  sr: 8000
+  chunk_size: 4
+  chunking_strategy: random
+  ref_channel: &ref_channel 0
+  channel_idx: [0, 1]
+  running_eras: true
+  normalization: true
+
+stft_conf: &stft_conf
+  fft_size: &fft_size 256
+  window_length: *fft_size
+  hop_length: 64
+  window_type: sqrt_hann
+  normalize: window
+
+eras_loss_conf:
+  loss_func: complex_l1
+  past_taps: 19
+  future_taps: 1
+  ref_channel_loss_weight: 0.0
+  isms_loss_weight: 0.0
+  icc_loss_weight: 0.1
+  ref_channel: *ref_channel
+  unsupervised: true
+  supervised_loss_type: after_filtering_ref_channel
+  stft_conf: *stft_conf
+
+# Network parameters
+model_name: tfgridnetv2
+model_conf:
+  fft_size: *fft_size
+  n_srcs: 2
+  n_imics: 1
+  n_layers: 4
+  lstm_hidden_units: 256
+  attn_n_head: 4
+  attn_approx_qk_dim: 512
+  emb_dim: 48
+  emb_ks: 4
+  emb_hs: 1
+  eps: 1.0e-5
+
+# Adam optimizer and reducelronplteau scheduler
+optimizer_conf:
+  lr: 1.0e-3
+scheduler_conf:
+  patience: 3
+  factor: 0.5
+
+# fine-tuning config
+pretrained_model_path: ./exp/eras/eras_whamr_isms0.3_icc0.0/checkpoints/last.ckpt
+warmup_steps: 4000
+
+
+# General parameters
+output_audio: true  # save wav files of separated sources during testing in "audio_output" directory
+log_file: ""

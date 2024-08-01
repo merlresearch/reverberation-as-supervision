@@ -1,0 +1,25 @@
+# Copyright (C) 2024 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+
+name: ras
+channels:
+  - pytorch
+  - conda-forge
+  - nvidia
+dependencies:
+  - python=3.11.5
+  - pytorch=2.1.1
+  - pytorch-cuda=11.8
+  - pip
+  - pip:
+    - pytorch-lightning==2.1.2
+    - loguru
+    - pyyaml
+    - SoundFile==0.10.3.post1
+    - tensorboard
+    - protobuf==3.20.3
+    - fast-bss-eval
+    - pesq==0.0.4
+    - numpy==1.26.4

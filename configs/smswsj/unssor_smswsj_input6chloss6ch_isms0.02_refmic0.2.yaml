@@ -1,0 +1,92 @@
+# Copyright (C) 2024 Mitsubishi Electric Research Laboratories (MERL)
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+
+# Basic training config
+batch_size: 4  # mini-batch size
+val_batch_size: 4 # cv batch size
+seed: 1128  # seed for initializing training
+shuffle: true  # shuffle training dataset during training
+num_workers: 4  # number of workers in dataloaders, 0 for single thread
+
+# trainer args
+trainer_conf:
+  max_epochs: 100
+  limit_train_batches: 1.0
+  limit_val_batches: 1.0
+  limit_test_batches: 1.0
+  gradient_clip_val: 1.0
+
+# early stopping configurations
+early_stopping: null
+
+# checkpoint saving
+model_checkpoint:
+  monitor: val/loss
+  save_top_k: 1
+  mode: min
+  save_weights_only: false
+  save_last: true
+
+# train/dev dataset
+dataset_name: smswsj
+dataset_conf:
+  placeholder: null # just a placeholder
+
+# torch dataset
+dataloading_conf:
+  sr: 8000
+  chunk_size: 4
+  chunking_strategy: random
+  ref_channel: &ref_channel 0
+  channel_idx: [0, 1, 2, 3, 4, 5]
+  running_eras: false
+  normalization: true
+
+stft_conf: &stft_conf
+  fft_size: &fft_size 256
+  window_length: *fft_size
+  hop_length: 64
+  window_type: sqrt_hann
+  normalize: window
+
+eras_loss_conf:
+  loss_func: complex_l1
+  past_taps: 19
+  future_taps: 1
+  ref_channel_loss_weight: 0.2
+  isms_loss_weight: 0.02
+  icc_loss_weight: 0.0
+  ref_channel: *ref_channel
+  unsupervised: true
+  supervised_loss_type: after_filtering_ref_channel # used for validation
+  stft_conf: *stft_conf
+
+# Network parameters
+model_name: tfgridnetv2
+model_conf:
+  fft_size: *fft_size
+  n_srcs: 2
+  n_imics: 6
+  n_layers: 4
+  lstm_hidden_units: 256
+  attn_n_head: 4
+  attn_approx_qk_dim: 512
+  emb_dim: 48
+  emb_ks: 4
+  emb_hs: 1
+  eps: 1.0e-5
+
+# Adam optimizer and reducelronplteau scheduler
+optimizer_conf:
+  lr: 1.0e-3
+scheduler_conf:
+  patience: 2
+  factor: 0.5
+
+pretrained_model_path: null
+
+
+# General parameters
+log_file: ""
